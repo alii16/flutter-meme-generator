@@ -49,16 +49,10 @@ class _LoginState extends State<Login> {
                             fontSize: 32)),
                   ),
                 ),
-                const SizedBox(
-                  height: 20,
-                ),
                 Lottie.asset(
                   'assets/login.json',
                   height: 200,
                   fit: BoxFit.fill,
-                ),
-                const SizedBox(
-                  height: 30,
                 ),
                 _emailAddress(),
                 const SizedBox(
