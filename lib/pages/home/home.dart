@@ -1,223 +1,185 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:authentication/services/auth_services.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:animate_do/animate_do.dart';
 
-class Home extends StatelessWidget {
+class Home extends StatefulWidget {
   const Home({super.key});
+
+  @override
+  _HomeState createState() => _HomeState();
+}
+
+class _HomeState extends State<Home> {
+  String? memeUrl;
+
+  Future<void> fetchMeme() async {
+    final response = await http.get(Uri.parse('https://meme-api.com/gimme'));
+    if (response.statusCode == 200) {
+      var data = jsonDecode(response.body);
+      setState(() {
+        memeUrl = data['url'];
+      });
+    }
+  }
+
+  Future<void> logout(BuildContext context) async {
+    await FirebaseAuth.instance.signOut();
+    Navigator.of(context).pushReplacementNamed('/login');
+  }
 
   @override
   Widget build(BuildContext context) {
     final String userEmail =
-        FirebaseAuth.instance.currentUser!.email!.toString();
+        FirebaseAuth.instance.currentUser?.email ?? 'user@gmail.com';
 
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: Stack(
-        children: [
-          Column(
-            children: [
-              // Bagian Atas dengan Gambar
-              Stack(
-                children: [
-                  Image.asset(
-                    'assets/images/background.jpg', // Ganti dengan path gambar yang sesuai
-                    width: double.infinity,
-                    height: 250,
-                    fit: BoxFit.cover,
-                  ),
-                  Positioned(
-                    top: 40,
-                    right: 20,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.yellow,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 10),
-                      ),
-                      onPressed: () async {
-                        await AuthService().signout(context: context);
-                      },
-                      child: const Text(
-                        "Logout",
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+      backgroundColor: Colors.deepPurple,
+      appBar: AppBar(
+        backgroundColor: Colors.deepPurple,
+        elevation: 0,
+        title: FadeInDown(
+          child: Text(
+            "Meme Generator",
+            style: GoogleFonts.raleway(
+              textStyle: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 28,
               ),
-              // Bagian Konten Bawah
-              Expanded(
-                child: Container(
-                  width: double.infinity,
-                  color: const Color(0xFF5C1CD8), // Warna ungu sesuai gambar
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Hello there 👋',
-                            style: GoogleFonts.raleway(
-                              textStyle: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 24,
-                              ),
-                            ),
-                          ),
-                          Text(
-                            userEmail,
-                            style: GoogleFonts.raleway(
-                              textStyle: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 20,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: Colors.yellow,
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        child: Text(
-                          "Welcome to RAWR's Project",
-                          style: GoogleFonts.raleway(
-                            textStyle: const TextStyle(
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.all(5),
-                          decoration: BoxDecoration(
-                            color: Colors.yellow,
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          child: Column(
-                            children: [
-                              const SizedBox(height: 10),
-                              Text(
-                                "Team member:",
-                                style: GoogleFonts.raleway(
-                                  textStyle: const TextStyle(
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
-                                  ),
-                                ),
-                              ),
-                              Expanded(
-                                child: GridView.count(
-                                  crossAxisCount: 2, // 2 orang per baris
-                                  crossAxisSpacing: 5,
-                                  shrinkWrap: true,
-                                  children: [
-                                    _teamMember("Syalli Polanunu", "220101061",
-                                        "assets/images/syalli.jpg"),
-                                    _teamMember(
-                                        "Ghefira Novita Putri",
-                                        "220101035",
-                                        "assets/images/ghefira.jpg"),
-                                    _teamMember("Intan Dewiasari Kaimudin",
-                                        "220101041", "assets/images/intan.jpg"),
-                                    _teamMember(
-                                        "Melda Olivia Lesbatta",
-                                        "220101053",
-                                        "assets/images/melda.jpeg"),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 20), // Spasi sebelum footer
-                      // Footer "Made with Flutter by RAWR"
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            "Made with ",
-                            style: GoogleFonts.raleway(
-                              textStyle: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                          Image.network(
-                            'https://iconape.com/wp-content/files/yb/61798/png/flutter-logo.png',
-                            width: 20,
-                            height: 20,
-                          ),
-                          Text(
-                            " by RAWR",
-                            style: GoogleFonts.raleway(
-                              textStyle: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(
-                          height: 10), // Spasi tambahan di bawah footer
-                    ],
-                  ),
-                ),
-              ),
-            ],
+            ),
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout, color: Colors.yellow, size: 30),
+            onPressed: () => logout(context),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _teamMember(String name, String id, String imagePath) {
-    return Column(
-      children: [
-        CircleAvatar(
-          radius: 40, // Ukuran gambar anggota
-          backgroundImage: AssetImage(imagePath),
-        ),
-        Text(
-          name,
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            color: Colors.black,
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
+      body: Center(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                FadeInLeft(
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Hi there!",
+                          style: GoogleFonts.raleway(
+                            textStyle: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 24,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          userEmail,
+                          style: GoogleFonts.raleway(
+                            textStyle: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 50),
+                BounceInDown(
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.purple[300],
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Colors.black26,
+                          blurRadius: 8,
+                          spreadRadius: 2,
+                          offset: Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        Text(
+                          "Generate Meme",
+                          style: GoogleFonts.raleway(
+                            textStyle: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 22,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                          child: memeUrl != null
+                              ? Image.network(memeUrl!,
+                                  height: 300, fit: BoxFit.cover)
+                              : Image.asset("assets/images/placeholder.jpeg",
+                                  height: 300, fit: BoxFit.cover),
+                        ),
+                        const SizedBox(height: 20),
+                        ElevatedButton(
+                          onPressed: fetchMeme,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.yellow,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 30, vertical: 15),
+                          ),
+                          child: const Text(
+                            "Generate",
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-        Text(
-          id,
-          style: const TextStyle(
-            color: Colors.black,
-            fontSize: 12,
+      ),
+      bottomNavigationBar: FadeInUp(
+        child: Container(
+          padding: const EdgeInsets.all(15),
+          color: Colors.deepPurple,
+          child: const Text(
+            "© 2025 Meme Generator - By RAWR",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
-      ],
+      ),
     );
   }
 }
